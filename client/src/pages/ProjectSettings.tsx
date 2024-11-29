@@ -83,7 +83,14 @@ const ProjectSettings: React.FC = () => {
     const handleSearch = async (searchQuery: string) => {
         try {
             const response = await axiosInstance.get<User[]>(`${API_URLS.BASE_URL}/users/filter?user_id=${user?.id}&filter=${searchQuery}`);
-            setSearchResults(response.data);
+            const user_friends = await axiosInstance.get<User[]>(`${API_URLS.BASE_URL}/users/friends?id=${user?.id}`);
+
+            const filteredUsers = response.data;
+            const friends = user_friends.data;
+            
+            const friendIds = new Set(friends.map(friend => friend.id));
+            const mutualUsers = filteredUsers.filter(user => friendIds.has(user.id));
+            setSearchResults(mutualUsers);
         } catch (error) {
             console.error('Error searching users:', error);
             enqueueSnackbar(`Error searching users: ${error.response?.data?.detail ?? 'Unknown error'}`, { variant: 'error' });}
