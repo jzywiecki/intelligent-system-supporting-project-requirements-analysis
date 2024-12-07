@@ -8,8 +8,8 @@ ray==2.32.0
 reportlab==4.2.2
 mermaid-py==0.6.0
 
-sphinx
-sphinx-rtd-theme
+sphinx==8.0.2
+sphinx-rtd-theme==2.0.0
 
 pydantic~=2.8.2
 pymongo~=4.8.0
