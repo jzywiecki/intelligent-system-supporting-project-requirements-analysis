@@ -56,7 +56,7 @@ const DatabaseDiagram: React.FC = () => {
     return (
         <div>
             <div className="flex justify-center items-center mb-4">
-            <h1 className="text-3xl font-semibold text-center mt-8">Database schema</h1>
+                <h1 className="text-3xl font-semibold text-center mt-8">Database schema</h1>
             </div>
             <div className="flex justify-center items-center">
                 <div className="mermaid">
@@ -64,7 +64,7 @@ const DatabaseDiagram: React.FC = () => {
                 </div>
             </div>
         </div>
-    );    
+    );
 };
 
 export default DatabaseDiagram;

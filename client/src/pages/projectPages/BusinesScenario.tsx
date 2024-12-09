@@ -21,12 +21,15 @@ const BusinessScenario: React.FC = () => {
     const updateXarrow = useXarrow();
     const [isLoading, setIsLoading] = useState(true);
     const { regenerate, setProjectRegenerateID, setComponentRegenerate } = useContext(RegenerateContext);
+
     function getComponentName() {
         return "business_scenarios";
     }
+
     const fetchData = async () => {
         try {
             const response = await axiosInstance.get(`${API_URLS.API_SERVER_URL}/model/business_scenarios/${projectID}`);
+            console.log(response.data)
             setTitle(response.data.business_scenario.title);
             setDescription(response.data.business_scenario.description);
             setFeatures(response.data.business_scenario.features);

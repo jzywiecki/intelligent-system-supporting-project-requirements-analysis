@@ -5,6 +5,7 @@ import { API_URLS } from "@/services/apiUrls";
 import { useSnackbar } from "notistack";
 import { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import axios from 'axios';
+import { makePictureUrl } from "@/utils/url";
 
 interface LogoListProps { }
 
@@ -31,21 +32,17 @@ const LogoList: React.FC<LogoListProps> = () => {
     const fetchData = async () => {
         try {
             const response = await axiosInstance.get(`${API_URLS.API_SERVER_URL}/model/logo/${projectID}`);
-            const image_list = response.data.logo_urls;
-            // const image_list = [
-            //     "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_640.jpg",
-            //     "https://fps.cdnpk.net/images/home/subhome-ai.webp?w=649&h=649",
-            //     "https://i0.wp.com/picjumbo.com/wp-content/uploads/amazing-stone-path-in-forest-free-image.jpg?w=600&quality=80",
-            //     "https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500"
-            // ];
+            console.log(response.data)
+
+            const image_list = response.data.urls;
 
             await Promise.all(
                 image_list.map(async (url) => {
                     await isImageUrl(url);
                 })
             );
-
-            setLogoUrls(image_list);
+            const logoUrls = image_list.map(makePictureUrl);
+            setLogoUrls(logoUrls);
 
         } catch (error) {
             if (error.response) {

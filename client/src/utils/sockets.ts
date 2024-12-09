@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client';
-import axiosInstance from '@/services/api'; 
+import axiosInstance from '@/services/api';
 import { API_URLS } from '@/services/apiUrls';
 
 export const socket = io(API_URLS.BASE_URL, {
@@ -27,7 +27,7 @@ socket.on('connect_error', async (err) => {
       socket.connect();
     } catch (refreshError) {
       console.error('Token refresh failed', refreshError);
-      
+
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');

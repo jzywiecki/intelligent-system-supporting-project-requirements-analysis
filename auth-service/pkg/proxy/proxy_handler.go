@@ -1,7 +1,7 @@
 package proxy
 
 import (
-	"auth-service/pkg/auth"
+	// "auth-service/pkg/auth"
 	"auth-service/pkg/config"
 	"fmt"
 	"log"
@@ -15,12 +15,12 @@ import (
 
 func HandlerFactory(serviceName string, config *config.Config, cache *cache.Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		isAuthenticated, err := auth.Authenticate(r)
-		if !isAuthenticated {
-			log.Printf("Unauthorized request from %s with error message %s", r.RemoteAddr, err)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+		// isAuthenticated, err := auth.Authenticate(r)
+		// if !isAuthenticated {
+		// 	log.Printf("Unauthorized request from %s with error message %s", r.RemoteAddr, err)
+		// 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		// 	return
+		// }
 
 		log.Printf("Proxying request to service: %s", serviceName)
 		ProxyRequest(w, r, serviceName, config, cache)

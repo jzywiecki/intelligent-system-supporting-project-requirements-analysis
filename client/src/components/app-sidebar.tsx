@@ -296,6 +296,7 @@ export function AppSidebar({ onProjectClick, ...props }: React.ComponentProps<ty
       [item.id]: false,
     }), {});
   });
+
   const getInitialGenerationStatus = (projectData) => {
     return data.navMain.reduce((status, item) => {
       const component = getComponentById(item.id);
@@ -356,16 +357,9 @@ export function AppSidebar({ onProjectClick, ...props }: React.ComponentProps<ty
       logo: GalleryVerticalEnd,
       plan: "",
     }];
-
+    //T
     updateData(data, nuser, project);
 
-    socket.auth = {
-      projectId: projectID,
-      userId: user.id,
-      discussionChatOffset: 0,
-      aiChatOffset: 0
-    };
-    socket.connect();
 
     const handleConnect = () => setConnected(true);
     const handleDisconnect = () => setConnected(false);

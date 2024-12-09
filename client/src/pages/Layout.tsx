@@ -9,6 +9,9 @@ import { useSnackbar } from 'notistack';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { checkProjectExists } from '../services/checkProjectExists';
 import ErrorPage from "./ErrorPage";
+import { useUser } from "@/components/UserProvider";
+import { socket } from '@/utils/sockets';
+import { useUserEdits } from "./projectsUtils/UserEditsProvider";
 
 type SidePanelType = 'ai' | 'discussion' | null;
 
@@ -18,24 +21,58 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const { enqueueSnackbar } = useSnackbar();
     const [sidePanel, setSidePanel] = useState<SidePanelType>(null);
     const [projectExistCode, setProjectExistCode] = useState<number | null>(null);
+    const { user } = useUser();
+    const { componentUserMap, addUserToComponent, removeUserFromComponent, addUsersToComponents } = useUserEdits();
+
+    // useEffect(() => {
+    //     async function validateProject() {
+    //         if (projectID) {
+    //             const exists = await checkProjectExists(projectID);
+    //             setProjectExistCode(exists);
+    //             if (exists === 200) {
+    //                 navigate('summary');
+    //             }
+
+    //         } else {
+    //             setProjectExistCode(400);
+    //         }
+    //     }
+
+    //     validateProject();
+    // }, []);
 
     useEffect(() => {
-        async function validateProject() {
-            if (projectID) {
-                const exists = await checkProjectExists(projectID);
-                setProjectExistCode(exists);
-                if (exists === 200) {
-                    navigate('summary');
-                }
+        if (!user?.id) return;
+        navigate("summary");
 
-            } else {
-                setProjectExistCode(400);
-            }
+        socket.auth = {
+            projectId: projectID,
+            userId: user.id,
+            discussionChatOffset: 0,
+            aiChatOffset: 0
+        };
+
+        socket.connect();
+
+        socket.on('edition-register', handleEditionRegister)
+
+        return () => {
+            socket.off('edition-register', handleEditionRegister);
+        };
+    }, [user?.id]);
+
+    const handleEditionRegister = (message) => {
+
+        if (message?.code == 11) {
+            //    received message format:
+            //        {
+            //       code: 11    (odnowienie całego rejestru)
+            //       componentsToUserMap: [ {component: id, users: [ObjectID]} ]
+            //       }
+
+            addUsersToComponents(message?.componentsToUserMap);
         }
-
-        validateProject();
-    }, []);
-
+    }
 
     const handleDownloadPDF = async () => {
         if (!projectID) return;
@@ -80,11 +117,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     };
 
 
-    if (projectExistCode != 200 && projectExistCode != null) {
-        return <ErrorPage errorCode={projectExistCode} />;
-    }
+    // if (projectExistCode != 200 && projectExistCode != null) {
+    //     return <ErrorPage errorCode={projectExistCode} />;
+    // }
 
-    if (projectExistCode == 200) {
+    // if (projectExistCode == 200) {
+    if (true) {
         return (
             <SidebarProvider>
                 <AppSidebar onProjectClick={handleProjectClick} />

@@ -1,8 +1,8 @@
 export const Components = Object.freeze({
     ACTORS: { id: 1, name: "actors" },
     BUSINESS_SCENARIOS: { id: 2, name: "business_scenarios" },
-    ELEVATOR_SPEECH: { id: 3, name: "elevator_speech" },
-    MOTTO: { id: 4, name: "motto" },
+    ELEVATOR_SPEECH: { id: 3, name: "elevator_speeches" },
+    MOTTO: { id: 4, name: "mottos" },
     PROJECT_SCHEDULE: { id: 5, name: "project_schedule" },
     REQUIREMENTS: { id: 6, name: "requirements" },
     RISKS: { id: 7, name: "risks" },
@@ -11,7 +11,7 @@ export const Components = Object.freeze({
     TITLE: { id: 10, name: "title" },
     DATABASE_SCHEMA: { id: 11, name: "database_schema" },
     LOGO: { id: 12, name: "logo" },
-    UML: { id: 13, name: "uml" },
+    UML: { id: 13, name: "uml_diagram_class" },
     // SUMMARY: { id: 14, name: "summary" },
 
 });

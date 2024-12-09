@@ -1,193 +1,121 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { motion } from 'framer-motion';
+import { useContext, useEffect, useRef, useState } from "react";
 import {
     Card,
     CardContent,
-} from "@/components/ui/card"
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from "@/components/ui/tabs"
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "@/components/ui/carousel"
-import plantumlEncoder from "plantuml-encoder";
-import './styles.css'
-import { useParams } from 'react-router-dom';
-import axiosInstance from '../../services/api';
-import RegenerateContext from '@/components/contexts/RegenerateContext';
-
-interface UMLDiagram {
-    code: string;
-    title: string;
-}
-
-interface PlantUMLCarouselProps {
-    diagrams: UMLDiagram[];
-    isLoading: boolean;
-}
-
-const PlantUMLCarousel: React.FC<PlantUMLCarouselProps> = ({ diagrams, isLoading }) => {
-
-    if (isLoading) {
-        return (<div>Loading</div>)
-    }
-    const [currentTab, setCurrentTab] = useState<'uml' | 'code'>('code');
-    const [currentDiagramIndex, setCurrentDiagramIndex] = useState(0);
-    const [umlCodes, setUmlCodes] = useState<string[]>(diagrams.map(diagram => diagram.code));
-    const [urls, setUrls] = useState<string[]>(diagrams.map(diagram => ''));
-    const [imageLoaded, setImageLoaded] = useState<boolean[]>(diagrams.map(diagram => false));
-    const [regenerate, setRegenerate] = useState(false);
-
-    const handleTabChange = (value: 'uml' | 'code') => {
-        setCurrentTab(value);
-    };
-
-    const handleCodeChange = (event: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
-        const updatedCodes = [...umlCodes];
-        updatedCodes[index] = event.target.value;
-        setUmlCodes(updatedCodes);
-        updateUrl(index, updatedCodes[index]);
-    };
-
-    useEffect(() => {
-        diagrams.forEach((_, index) => updateUrl(index, umlCodes[index]));
-    }, []);
-
-    useEffect(() => {
-        if (!isLoading) {
-            updateUrls();
-        }
-    }, [umlCodes, isLoading]);
-
-    const updateUrls = () => {
-        diagrams.forEach((_, index) => updateUrl(index, umlCodes[index]));
-    };
-
-    const updateUrl = (index: number, code: string) => {
-        return new Promise<void>((resolve) => {
-            const encodedMarkup = plantumlEncoder.encode(code);
-            const updatedUrls = [...urls];
-            updatedUrls[index] = `http://www.plantuml.com/plantuml/svg/${encodedMarkup}`;
-            setUrls(updatedUrls);
-
-            const img = new Image();
-            img.src = updatedUrls[index];
-            img.onload = () => {
-                const updatedImageLoaded = [...imageLoaded];
-                updatedImageLoaded[index] = true;
-                setImageLoaded(updatedImageLoaded);
-                resolve();
-            };
-        });
-    };
-
-    const handleRegen = (index: number) => {
-        const updatedCodes = [...umlCodes];
-        updatedCodes[index] = updatedCodes[index] + "";
-        setUmlCodes(updatedCodes);
-        updateUrl(index, updatedCodes[index]);
-    };
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            diagrams.forEach((_, index) => handleRegen(index));
-        }, 2000);
-        return () => clearTimeout(timer);
-    }, []);
-
-    return (
-        (!isLoading && <div style={{ height: 'calc(100vh - 84px)' }} className="w-[100%] flex justify-center items-center">
-            <Carousel className="w-11/12 flex justify-center items-center">
-                <CarouselContent className=" ">
-                    {diagrams.map((diagram, index) => (
-                        <CarouselItem key={index} className=" flex justify-center items-center flex-col" onClick={() => setCurrentDiagramIndex(index)}>
-                            <h2 className='uml-title'>{diagram.title}</h2>
-                            <Tabs defaultValue="code" className="w-11/12" style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
-                                <TabsList className="grid w-[40%] grid-cols-2">
-                                    <TabsTrigger value="uml" onClick={() => handleTabChange('uml')}>UML</TabsTrigger>
-                                    <TabsTrigger value="code" onClick={() => handleTabChange('code')}>Code</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="uml" className='w-[90%] flex justify-center items-center '>
-                                    <Card className='w-[100%] flex justify-center items-center'>
-                                        <CardContent className="space-y-2">
-                                            {imageLoaded[index] ? (
-                                                <motion.img alt="plantuml-graph" src={urls[index]} />
-                                            ) : (
-                                                <div>Loading...</div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                </TabsContent>
-                                <TabsContent value="code" className='w-[90%] flex justify-center items-center '>
-                                    <textarea
-                                        value={umlCodes[index]}
-                                        onChange={(event) => handleCodeChange(event, index)}
-                                        className="w-full h-[300px] p-2 border rounded flex justify-center items-center text-left"
-                                        placeholder="Enter PlantUML code..."
-                                    />
-                                </TabsContent>
-                            </Tabs>
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-                <CarouselPrevious className='m-8' />
-                <CarouselNext className='m-8' />
-            </Carousel>
-        </div>
-        )
-    );
-};
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { useParams } from "react-router-dom";
+import axiosInstance from "@/services/api";
+import { API_URLS } from "@/services/apiUrls";
+import RegenerateContext from "@/components/contexts/RegenerateContext";
+import mermaid from "mermaid";
 
 const UMLDiagrams: React.FC = () => {
-    const { projectID } = useParams();
-    const [plantUMLCodes, setPlantUMLCodes] = useState("");
-    const [isLoading, setIsLoading] = useState(true)
+    const { projectID } = useParams<{ projectID: string }>();
+    const [umlDiagrams, setUmlDiagrams] = useState<any[]>([]);
+    const [selectedDiagramIndex, setSelectedDiagramIndex] = useState<number>(0);
+    const [mermaidDiagram, setMermaidDiagram] = useState<string>("");
+    const diagramRef = useRef<HTMLDivElement>(null);
     const { regenerate, setProjectRegenerateID, setComponentRegenerate } = useContext(RegenerateContext);
 
-    function getComponentName() {
-        return "uml";
-    }
     const fetchData = async () => {
         try {
-            const response = await axiosInstance.get(`${api}/model/uml/${projectID}`);
+            const response = await axiosInstance.get(`${API_URLS.API_SERVER_URL}/model/uml_diagram_class/${projectID}`);
             console.log(response.data)
-
-
-            if (response.data.umls) {
-                setPlantUMLCodes(response.data.umls);
-            }
-            else {
-                setPlantUMLCodes(null)
-            }
-
-
+            setUmlDiagrams(response.data.uml_diagram_class);
         } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            setIsLoading(false);
+            console.error("Error fetching data:", error);
         }
-    }
+    };
+
+    const parseUMLToClassDiagramMermaid = (umlData: any): string => {
+        if (!umlData || typeof umlData !== 'object') {
+            throw new Error("Invalid UML data format");
+        }
+
+        let diagram = 'classDiagram\n';
+
+        diagram += `class ${umlData.name} {\n`;
+
+        umlData.attributes.forEach((attr: any) => {
+            diagram += `  ${attr.type} ${attr.name}\n`;
+        });
+
+        umlData.methods.forEach((method: any) => {
+            diagram += `  ${method.return_type} ${method.name}()\n`;
+        });
+
+        diagram += '}\n';
+
+        umlData.relationships.forEach((rel: any) => {
+            diagram += `${umlData.name} --> ${rel.target}\n`;
+        });
+
+        return diagram;
+    };
+
     useEffect(() => {
         if (projectID) {
             setProjectRegenerateID(projectID);
         }
-        setComponentRegenerate(getComponentName())
+        setComponentRegenerate("UML Diagrams");
         fetchData();
     }, [projectID, regenerate]);
 
-    return (plantUMLCodes ?
-        <div className="App">
-            <PlantUMLCarousel diagrams={plantUMLCodes} isLoading={isLoading} />
+    useEffect(() => {
+        if (umlDiagrams.length > 0) {
+            const diagram = parseUMLToClassDiagramMermaid(umlDiagrams[selectedDiagramIndex]);
+            setMermaidDiagram(diagram || "Error generating diagram");
+        }
+    }, [umlDiagrams, selectedDiagramIndex]);
+
+    const renderDiagram = async () => {
+        if (diagramRef.current && mermaidDiagram) {
+            try {
+                const { svg } = await mermaid.render("theGraph", mermaidDiagram);
+                diagramRef.current.innerHTML = svg;
+            } catch (error) {
+                diagramRef.current.innerHTML = "Invalid diagram syntax";
+                console.error("Mermaid rendering error:", error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        renderDiagram();
+    }, [mermaidDiagram]);
+
+    return (
+        <div>
+            <div className="flex justify-center items-center mb-4">
+                <h1 className="text-3xl font-semibold text-center mt-8">UML Diagrams</h1>
+            </div>
+            <div className="flex justify-center items-center mb-4">
+                <div className="flex space-x-4">
+                    {umlDiagrams.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setSelectedDiagramIndex(index)}
+                            className={`px-4 py-2 border rounded-md ${index === selectedDiagramIndex ? "bg-blue-500 text-white" : "bg-gray-200"
+                                }`}
+                        >
+                            Diagram {index + 1}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <div className="flex justify-center items-center">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>UML Diagram {selectedDiagramIndex + 1}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div ref={diagramRef}></div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
-        :
-        <div>Error </div>
     );
 };
 

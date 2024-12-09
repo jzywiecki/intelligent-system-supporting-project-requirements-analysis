@@ -64,7 +64,6 @@ export function NavUser({
   const handleAddMember = async (friendId: string) => {
     try {
       const url = `${API_URLS.API_SERVER_URL}/projects/${projectID}/members/add`;
-      console.log(userId, friendId)
       if (userId != null && userId != undefined && userId != "") {
         await axiosInstance.post(url, { sender_id: userId, member_id: friendId });
       }
